@@ -1,38 +1,60 @@
 using System;
+using System.Threading.Tasks;
 using CommandBasedComponents.Infrastructure;
 
 namespace CommandBasedComponents.Testing
 {
     public class FakeWindowsServiceFacade : IWindowsServiceFacade
     {
-        readonly string _name;
-
-        public FakeWindowsServiceFacade(string name)
+        public FakeWindowsServiceFacade()
         {
-            _name = name;
             IsStopped = true;
         }
 
         public bool IsStarted { get; set; }
         public bool IsStopped { get; set; }
 
-        public void StopAndWait(TimeSpan timeout)
+        bool IWindowsServiceFacade.IsStarted(string name)
         {
-            IsStopped = true;
-            IsStarted = false;
-            Console.WriteLine("Service " + _name + " stopped");
+            return IsStarted;
         }
 
-        public void Kill()
+        bool IWindowsServiceFacade.IsStopped(string name)
         {
-            Console.WriteLine("Service " + _name + " killed");
+            return IsStopped;
         }
 
-        public void Start()
+        public bool Exists(string name)
+        {
+            return true;
+        }
+
+        public Task<bool> Kill(string name)
+        {
+            Console.WriteLine("Service " + name + " killed");
+            var source = new TaskCompletionSource<bool>();
+            source.SetResult(true);
+            return source.Task;
+        }
+
+        public Task<bool> Start(string name)
         {
             IsStarted = true;
             IsStopped = false;
-            Console.WriteLine("Service " + _name + " started");
+            Console.WriteLine("Service " + name + " started");
+            var source = new TaskCompletionSource<bool>();
+            source.SetResult(true);
+            return source.Task;
+        }
+
+        public Task<bool> Stop(string name)
+        {
+            IsStopped = true;
+            IsStarted = false;
+            Console.WriteLine("Service " + name + " stopped");
+            var source = new TaskCompletionSource<bool>();
+            source.SetResult(true);
+            return source.Task;
         }
     }
 }

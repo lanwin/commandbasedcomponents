@@ -121,8 +121,8 @@ namespace CommandBasedComponents
     {
         public static readonly ContextKey<NugetInstaller> NugetInstaller = new ContextKey<NugetInstaller>();
         public static readonly ContextKey<NugetLocator> NugetLocator = new ContextKey<NugetLocator>();
+        public static readonly ContextKey<IWindowsServiceFacade> WindowsServiceFacade = new ContextKey<IWindowsServiceFacade>();
         public static readonly ContextKey<WindowsServiceInstaller> WindowsServiceInstaller = new ContextKey<WindowsServiceInstaller>();
-        public static readonly ContextKey<IWindowsServiceLocator> WindowsServiceLocator = new ContextKey<IWindowsServiceLocator>();
     }
 
     // commands
@@ -196,19 +196,19 @@ namespace CommandBasedComponents
         public void Execute(IContext context)
         {
             var service = context.Get(PackageKeys.ServiceDescription);
-            var locator = context.Get(ServiceKeys.WindowsServiceLocator);
+            var serviceFacade = context.Get(ServiceKeys.WindowsServiceFacade);
 
-            var windowsService = locator.TryFind(service.ServiceName);
-
-            if(windowsService == null || windowsService.IsStopped)
+            if(!serviceFacade.Exists(service.ServiceName))
                 return;
 
-            windowsService.StopAndWait(TimeSpan.FromSeconds(30));
+            serviceFacade.Stop(service.ServiceName)
+                .Wait(30);
 
-            if(windowsService.IsStopped)
+            if(serviceFacade.IsStopped(service.ServiceName))
                 return;
 
-            windowsService.Kill();
+            serviceFacade.Kill(service.ServiceName)
+                .Wait(30);
         }
     }
 
@@ -217,13 +217,13 @@ namespace CommandBasedComponents
         public void Execute(IContext context)
         {
             var service = context.Get(PackageKeys.ServiceDescription);
-            var locator = context.Get(ServiceKeys.WindowsServiceLocator);
+            var serviceFacade = context.Get(ServiceKeys.WindowsServiceFacade);
             var installer = context.Get(ServiceKeys.WindowsServiceInstaller);
 
-            var windowsService = locator.TryFind(service.ServiceName);
-            if(windowsService == null)
+            if(!serviceFacade.Exists(service.ServiceName))
                 return;
-            if(windowsService.IsStopped == false)
+
+            if(!serviceFacade.IsStopped(service.ServiceName))
                 throw new InvalidOperationException("Service " + service.ServiceName + " need to be stopped to remove it");
 
             installer.Uninstall(service);
@@ -248,11 +248,10 @@ namespace CommandBasedComponents
         public void Execute(IContext context)
         {
             var service = context.Get(PackageKeys.ServiceDescription);
-            var locator = context.Get(ServiceKeys.WindowsServiceLocator);
+            var serviceFacade = context.Get(ServiceKeys.WindowsServiceFacade);
             var installer = context.Get(ServiceKeys.WindowsServiceInstaller);
 
-            var windowsService = locator.TryFind(service.ServiceName);
-            if(windowsService != null)
+            if(serviceFacade.Exists(service.ServiceName))
                 return;
 
             installer.Install(service);
@@ -264,14 +263,15 @@ namespace CommandBasedComponents
         public void Execute(IContext context)
         {
             var service = context.Get(PackageKeys.ServiceDescription);
-            var locator = context.Get(ServiceKeys.WindowsServiceLocator);
+            var serviceFacade = context.Get(ServiceKeys.WindowsServiceFacade);
 
-            var windowsService = locator.Find(service.ServiceName);
-
-            if(windowsService.IsStarted)
+            if(!serviceFacade.Exists(service.ServiceName))
                 return;
 
-            windowsService.Start();
+            if(serviceFacade.IsStarted(service.ServiceName))
+                return;
+
+            serviceFacade.Stop(service.ServiceName);
         }
     }
 
@@ -440,7 +440,7 @@ namespace CommandBasedComponents
 
             using(var context = Context.Empty)
             {
-                context.Put(ServiceKeys.WindowsServiceLocator, new FakeWindowsServiceLocator());
+                context.Put(ServiceKeys.WindowsServiceFacade, new FakeWindowsServiceFacade());
                 context.Put(ServiceKeys.WindowsServiceInstaller, new WindowsServiceInstaller());
                 context.Put(ServiceKeys.NugetInstaller, new NugetInstaller());
                 context.Put(ServiceKeys.NugetLocator, new NugetLocator());

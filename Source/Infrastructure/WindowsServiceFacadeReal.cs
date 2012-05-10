@@ -1,54 +1,72 @@
 using System;
+using System.Linq;
 using System.ServiceProcess;
+using System.Threading.Tasks;
 using Microsoft.Win32;
 
 namespace CommandBasedComponents.Infrastructure
 {
     public class WindowsServiceFacadeReal : IWindowsServiceFacade
     {
-        readonly ServiceController _controller;
-
-        public WindowsServiceFacadeReal(ServiceController controller)
+        bool IWindowsServiceFacade.IsStarted(string name)
         {
-            _controller = controller;
+            return GetService(name).Status == ServiceControllerStatus.Running;
         }
 
-        public bool IsStarted
+        bool IWindowsServiceFacade.IsStopped(string name)
         {
-            get { return _controller.Status == ServiceControllerStatus.Running; }
+            return GetService(name).Status == ServiceControllerStatus.Stopped;
         }
 
-        public bool IsStopped
+        public bool Exists(string name)
         {
-            get { return _controller.Status == ServiceControllerStatus.Stopped; }
+            return GetService(name) != null;
         }
 
-        public void StopAndWait(TimeSpan timeout)
+        public Task<bool> Kill(string name)
         {
-            _controller.Stop();
-            _controller.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
-        }
-
-        public void Kill()
-        {
-            var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\services");
-            if(key == null)
+            return Task.Factory.StartNew(() =>
             {
-                return;
-            }
-            key = key.OpenSubKey(_controller.ServiceName);
-            if(key == null)
-            {
-                return;
-            }
-            var imagePath = (string)key.GetValue("ImagePath", null);
-
-            // find process & kill
+                var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\services");
+                if(key == null)
+                    return true;
+                var controller = GetService(name);
+                key = key.OpenSubKey(controller.ServiceName);
+                if(key == null)
+                    return true;
+                var imagePath = (string)key.GetValue("ImagePath", null);
+                // find process & kill
+                return true;
+            });
         }
 
-        public void Start()
+        public Task<bool> Start(string name)
         {
-            _controller.Start();
+            return Task.Factory.StartNew(() =>
+            {
+                var controller = GetService(name);
+                controller.Start();
+                controller.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMinutes(10));
+                return controller.Status == ServiceControllerStatus.Running;
+            });
+        }
+
+        public Task<bool> Stop(string name)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                var controller = GetService(name);
+                controller.Stop();
+                controller.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromMinutes(10));
+                return controller.Status == ServiceControllerStatus.Stopped;
+            });
+        }
+
+        static ServiceController GetService(string name)
+        {
+            return ServiceController
+                .GetServices()
+                .FirstOrDefault(s => s.ServiceName == name);
         }
     }
 }
