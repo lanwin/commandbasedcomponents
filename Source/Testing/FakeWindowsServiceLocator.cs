@@ -1,10 +1,10 @@
 using System;
 using CommandBasedComponents.Core;
-using CommandBasedComponents.Testing;
+using CommandBasedComponents.Infrastructure;
 
-namespace CommandBasedComponents.Infrastructure
+namespace CommandBasedComponents.Testing
 {
-    public class WindowsServiceLocatorReal : IWindowsServiceLocator
+    public class FakeWindowsServiceLocator : IWindowsServiceLocator
     {
         [NotNull]
         public FakeWindowsServiceFacade Find(string name)
@@ -19,11 +19,7 @@ namespace CommandBasedComponents.Infrastructure
 
         public FakeWindowsServiceFacade TryFind(string name)
         {
-            throw new NotImplementedException();/*
-            return ServiceController.GetServices()
-                .Where(s => s.ServiceName.Equals(name, StringComparison.OrdinalIgnoreCase))
-                .Select(s => new WindowsServiceFacade(s.n))
-                .FirstOrDefault();*/
+            return new FakeWindowsServiceFacade(name);
         }
     }
 }

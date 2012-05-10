@@ -4,7 +4,7 @@ using Microsoft.Win32;
 
 namespace CommandBasedComponents.Infrastructure
 {
-    public class WindowsServiceFacadeReal
+    public class WindowsServiceFacadeReal : IWindowsServiceFacade
     {
         readonly ServiceController _controller;
 
