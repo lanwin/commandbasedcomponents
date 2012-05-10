@@ -440,7 +440,7 @@ namespace CommandBasedComponents
         public void Run()
         {
             // an plugin would run this
-            Interceptor.RunAfter<InitializeRequiredPackageIds>(new AddRequiredPackageIds
+            AfterCommand<InitializeRequiredPackageIds>.Run(new AddRequiredPackageIds
             {
                 PackageIds = new[]
                 {
