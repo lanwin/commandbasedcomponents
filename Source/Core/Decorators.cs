@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace CommandBasedComponents.Core
 {
     [DebuggerNonUserCode]
-    public static class TransformerDecorators
+    public static class Decorators
     {
         public static void Execute(this Func<ICommand, ICommand> decorator, ICommand command, IContext context)
         {

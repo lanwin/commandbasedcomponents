@@ -55,7 +55,7 @@
     <Compile Include="Core\DecoratedCommandBase.cs" />
     <Compile Include="Core\IDecoratorCommand.cs" />
     <Compile Include="Core\Interceptor.cs" />
-    <Compile Include="Core\TransformerDecorators.cs" />
+    <Compile Include="Core\Decorators.cs" />
     <Compile Include="Core\Context.cs" />
     <Compile Include="Core\ICommand.cs" />
     <Compile Include="Core\IContext.cs" />

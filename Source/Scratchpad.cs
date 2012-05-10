@@ -297,7 +297,7 @@ namespace CommandBasedComponents
     public class UninstallServicePackage : ChainCommand
     {
         public UninstallServicePackage()
-            : base(TransformerDecorators.All)
+            : base(Decorators.All)
         {
             Add(new GetLocalPackageFromId());
             Add(new GetServiceDescriptionFromPackage());
@@ -346,7 +346,7 @@ namespace CommandBasedComponents
     public class InstallServicePackage : ChainCommand
     {
         public InstallServicePackage()
-            : base(TransformerDecorators.All)
+            : base(Decorators.All)
         {
             Add(new GetLocalPackageFromId());
             Add(new GetRemotePackageFromId());
@@ -369,7 +369,7 @@ namespace CommandBasedComponents
     public class InstallAppPackage : ChainCommand
     {
         public InstallAppPackage()
-            : base(TransformerDecorators.All)
+            : base(Decorators.All)
         {
             //...
             Add(new InstallNugetPackage());
@@ -380,7 +380,7 @@ namespace CommandBasedComponents
     public class InstallPackage : ChainCommand
     {
         public InstallPackage()
-            : base(TransformerDecorators.All)
+            : base(Decorators.All)
         {
             Add(new CommandRouter
             {
@@ -405,7 +405,7 @@ namespace CommandBasedComponents
     public class IterateRequiredPackageIds : ChainCommand
     {
         public IterateRequiredPackageIds()
-            : base(TransformerDecorators.All)
+            : base(Decorators.All)
         {
         }
 
@@ -425,7 +425,7 @@ namespace CommandBasedComponents
     public class InstallRequiredPackages : ChainCommand
     {
         public InstallRequiredPackages()
-            : base(TransformerDecorators.All)
+            : base(Decorators.All)
         {
             Add(new InitializeRequiredPackageIds());
             Add(new IterateRequiredPackageIds
@@ -460,7 +460,7 @@ namespace CommandBasedComponents
         readonly List<IRoute> _routes = new List<IRoute>();
 
         public CommandRouter(params IRoute[] routes)
-            : base(TransformerDecorators.All)
+            : base(Decorators.All)
         {
             _routes.AddRange(routes);
         }
@@ -516,7 +516,7 @@ namespace CommandBasedComponents
                 context.Put(ServiceKeys.WindowsServiceInstaller, new WindowsServiceInstaller());
                 context.Put(ServiceKeys.NugetInstaller, new NugetInstaller());
                 context.Put(ServiceKeys.NugetLocator, new NugetLocator());
-                context.Run(new InstallRequiredPackages(), TransformerDecorators.All);
+                context.Run(new InstallRequiredPackages(), Decorators.All);
             }
         }
     }
