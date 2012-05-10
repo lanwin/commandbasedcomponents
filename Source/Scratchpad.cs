@@ -423,19 +423,30 @@ namespace CommandBasedComponents
         }
     }
 
+    class AddRequiredPackageIds : ICommand
+    {
+        public string[] PackageIds { get; set; }
+
+        public void Execute(IContext context)
+        {
+            var ids = new List<string>(context.Get(PackageKeys.RequiredPackageIds));
+            ids.AddRange(PackageIds);
+            context.Put(PackageKeys.RequiredPackageIds, ids.ToArray());
+        }
+    }
+
     public class Runner
     {
         public void Run()
         {
             // an plugin would run this
-            Interceptor.RunAfter<InitializeRequiredPackageIds>((context, command) =>
+            Interceptor.RunAfter<InitializeRequiredPackageIds>(new AddRequiredPackageIds
             {
-                var ids = new List<string>(context.Get(PackageKeys.RequiredPackageIds))
+                PackageIds = new[]
                 {
-                    "a1",
-                    "a2"
-                };
-                context.Put(PackageKeys.RequiredPackageIds, ids.ToArray());
+                    "A1",
+                    "A2",
+                }
             });
 
             using(var context = Context.Empty)
